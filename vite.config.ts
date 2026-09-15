@@ -20,8 +20,20 @@ export default defineConfig({
         ],
       },
       workbox: {
-        // arquivos grandes (bundle do Univer) — evita estourar o limite padrão de cache
+        // arquivo principal é grande (bundle do Univer) — evita estourar o limite padrão de cache
         maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
+        // o Univer carrega ~77 chunks de padrões de hifenização (um por idioma, usados só
+        // pra justificar parágrafo em texto rico) via import dinâmico, sob demanda — não
+        // fazem parte do carregamento inicial e quase nenhum usuário de planilha vai
+        // precisar deles. Sem esse filtro o precache (o que o app baixa de uma vez pra
+        // funcionar offline) ficava com ~11MB; só a lista abaixo já cobre tudo que o app
+        // usa pra abrir/editar/salvar planilha offline, caindo pra ~6,3MB.
+        globPatterns: [
+          'index.html',
+          'manifest.webmanifest',
+          'assets/index-*.{js,css}',
+          'icons/**/*.png',
+        ],
       },
     }),
   ],
