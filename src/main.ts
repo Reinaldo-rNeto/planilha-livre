@@ -4,6 +4,7 @@ import UniverPresetSheetsCorePtBR from '@univerjs/preset-sheets-core/locales/pt-
 import '@univerjs/preset-sheets-core/lib/index.css'
 import './style.css'
 import { lerArquivoParaWorkbook, exportarWorkbook } from './xlsx-bridge'
+import { registrarFormulasPtBr } from './formulas-ptbr'
 import type { IWorkbookData } from '@univerjs/presets'
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
@@ -32,6 +33,8 @@ const { univerAPI } = createUniver({
 })
 
 univerAPI.createWorkbook({})
+
+registrarFormulasPtBr(univerAPI)
 
 let nomeArquivoAtual = 'planilha-sem-titulo'
 

@@ -1,7 +1,17 @@
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import { fileURLToPath } from 'node:url'
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      // franc-min (detecção de idioma por trigramas) só serve pra escolher dicionário
+      // de hifenização automática de parágrafo — recurso que este app não liga nem
+      // expõe. Troca pelo stub em src/stubs pra não carregar os dicionários de ~30
+      // idiomas dentro do bundle principal. Ver o comentário no próprio arquivo do stub.
+      'franc-min': fileURLToPath(new URL('./src/stubs/franc-min-stub.ts', import.meta.url)),
+    },
+  },
   plugins: [
     VitePWA({
       registerType: 'autoUpdate',

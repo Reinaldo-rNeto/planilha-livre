@@ -12,6 +12,7 @@
     "teste:exportar": "node scripts/teste-exportar.mjs"
   },
   "devDependencies": {
+    "@univerjs/engine-formula": "^0.25.1",
     "playwright": "^1.63.0",
     "typescript": "~6.0.2",
     "vite": "^8.3.0",
@@ -21,5 +22,8 @@
     "@univerjs/preset-sheets-core": "^0.25.1",
     "@univerjs/presets": "^0.25.1",
     "xlsx": "^0.18.5"
+  },
+  "overrides": {
+    "nanoid": "^5.1.16"
   }
 }
