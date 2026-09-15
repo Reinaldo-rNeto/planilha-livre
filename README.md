@@ -1,5 +1,7 @@
 # Projeto_PlanilhaLivre
 
+Repositório: https://github.com/Reinaldo-rNeto/planilha-livre
+
 App open source para visualizar e editar arquivos `.xlsx` e `.csv` direto no navegador (PWA), sem precisar assinar o Excel e sem depender de conta Google/Google Sheets.
 
 ## Objetivo e posicionamento
@@ -60,13 +62,22 @@ Rodado com `npm run gerar:teste-grande` (gera um CSV de 50.000 linhas × 12 colu
 
 Ou seja, o requisito de "aguentar arquivos grandes" está validado na prática, não só na teoria — mas vale testar depois com planilhas ainda maiores (100k+ linhas) e com mais colunas de texto/fórmulas, que pesam mais que números.
 
+## Mobile e offline — também validados na prática (não só no papel)
+
+Testado com Playwright emulando um Android comum (viewport 360×740) e depois um iPhone-ish (390×844):
+
+- **Toque funciona de ponta a ponta:** dar duplo toque numa célula, digitar e apertar Enter grava o valor de verdade — testado e confirmado visualmente, não só "parece que funciona".
+- **A UI nativa do Univer se adapta melhor do que eu esperava** — isso corrige o que eu tinha registrado antes como pendência: em tela estreita, o ribbon já colapsa pra menos abas (Início/Fórmulas/Dados) e a navegação entre planilhas ganha setas ‹ › pra caber no espaço. Não é um app mobile-first desenhado do zero, mas está bem mais utilizável em toque do que a suposição inicial.
+- **Offline de verdade, testado, não assumido:** carreguei o app uma vez (o service worker faz o precache), depois simulei ficar sem internet e recarreguei a página — abriu normalmente, sem erro. O requisito "funciona offline" está validado, não é só o plugin de PWA estar instalado.
+- Adicionei suporte a instalação: um botão "Instalar app" aparece quando o navegador permite (Android/desktop Chrome; iOS não expõe esse evento — lá o caminho continua sendo Compartilhar → Adicionar à Tela de Início) e as meta tags que faltavam pro "adicionar à tela de início" funcionar direito no iOS (o iOS ignora o `manifest.json` nesse ponto e exige tags `apple-mobile-web-app-*` próprias).
+
 ## Pendências conhecidas (achados durante o setup, não escondidos)
 
-- **Bundle inicial pesado:** o `dist/assets/index-*.js` ficou em ~6,2MB (1,77MB gzip) — o preset do Univer já vem com editor de texto rico, formatação, atalhos etc. embutidos. Pra um app "leve e mobile-first" isso merece atenção depois: possivelmente carregar o preset sob demanda (`lazy: true`) ou revisar quais módulos do preset realmente precisamos.
-- **UI padrão do Univer é bem "desktop":** a barra de ferramentas nativa (fórmulas, formatação) que já vem de fábrica é ótima como funcionalidade, mas visualmente é densa — o trabalho de UI mobile-first ainda não começou, só a fundação técnica.
+- **Bundle inicial pesado:** o `dist/assets/index-*.js` ficou em ~6,2MB (1,77MB gzip) — o preset do Univer já vem com editor de texto rico, formatação, atalhos etc. embutidos. A opção `lazy` do pacote só se aplica ao build UMD/CDN, não ajuda no nosso build via Vite/ESM — então isso continua sem solução simples; a saída real seria importar os pacotes de nível mais baixo do Univer à mão em vez do preset completo, o que é um refactor maior, não uma configuração.
 - **95 vulnerabilidades "high" no `npm audit`:** quase todas vêm de dependências internas do próprio Univer (ex: `nanoid` desatualizado usado por pacotes `@univerjs-pro/*` que nem chegamos a importar). Sem correção disponível no momento — é algo pra rodar pela skill de segurança antes do lançamento e reavaliar quando o Univer atualizar essas dependências.
 - Ícones do manifest do PWA (`public/icons/`) são placeholders gerados na hora — trocar por uma identidade visual de verdade antes de publicar.
+- Tudo isso foi testado em Chromium (via Playwright) — ainda não em Safari/iOS ou Chrome Android reais. Vale testar num celular de verdade antes de considerar "pronto".
 
 ## Status
 
-Esqueleto funcional rodando, com abrir/editar/salvar xlsx e csv funcionando de ponta a ponta e performance validada com arquivo grande. Próximos passos: UI mobile-first de verdade, PWA testado num celular real, e revisão do tamanho do bundle.
+Esqueleto funcional rodando: abrir/editar/salvar xlsx e csv funcionando de ponta a ponta, com performance, toque/edição mobile e modo offline todos validados por teste automatizado (não só no papel). Próximos passos: testar num celular real, revisar o tamanho do bundle, e decidir o que entra na próxima leva de funcionalidades (fórmulas mais avançadas, formatação, etc.).
