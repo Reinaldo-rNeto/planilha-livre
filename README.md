@@ -6,7 +6,7 @@ App open source para visualizar e editar arquivos `.xlsx` e `.csv` direto no nav
 
 ## Objetivo e posicionamento
 
-Não é uma tentativa de bater de frente com Excel/Google Sheets/LibreOffice/OnlyOffice — é ser **o que o LibreOffice Calc e o OnlyOffice são, só que mais simples, mais leve e mobile-first**. O criador já usa LibreOffice/OnlyOffice e eles funcionam, mas a meta aqui é ter um produto próprio, competitivo nesse nicho, não apenas "resolver com o que já existe".
+Não é uma tentativa de bater de frente com Excel/Google Sheets/LibreOffice/OnlyOffice — é ser **o que o LibreOffice Calc e o OnlyOffice são, só que mais simples, mais leve e mobile-first**. a meta aqui é ter um produto próprio, competitivo nesse nicho, não apenas "resolver com o que já existe".
 
 Dor original que motivou o projeto: trabalhar com ciência de dados e mexer bastante com planilhas, sem licença de Excel, e achar um saco ter que subir a planilha pro Google Drive/Sheets só pra dar uma olhada ou editar algo rápido. Público-alvo: qualquer pessoa nessa mesma situação — provavelmente muitas, dado que é uma dor comum em quem trabalha com dados sem licença corporativa de Office.
 
