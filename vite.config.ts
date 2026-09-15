@@ -20,7 +20,12 @@ export default defineConfig({
         short_name: 'PlanilhaLivre',
         description: 'Abra e edite planilhas xlsx e csv direto no navegador, sem conta e sem internet.',
         lang: 'pt-BR',
-        start_url: '/',
+        // relativo (não "/") de propósito: assim o manifest funciona tanto servido na
+        // raiz (Vercel/Netlify/rodando local) quanto num subcaminho (GitHub Pages de
+        // projeto, ex. usuario.github.io/planilha-livre/) sem precisar saber o base em
+        // tempo de build.
+        start_url: '.',
+        scope: '.',
         display: 'standalone',
         background_color: '#ffffff',
         theme_color: '#2f6feb',

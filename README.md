@@ -4,6 +4,8 @@ Repositório: https://github.com/Reinaldo-rNeto/planilha-livre
 
 App open source para visualizar e editar arquivos `.xlsx` e `.csv` direto no navegador (PWA), sem precisar de licença de Excel e sem depender de Google Drive/Sheets.
 
+![Planilha aberta no PlanilhaLivre, com a fórmula =SOMA(B2:B4) digitada em português calculando o total](./docs/screenshot.png)
+
 ## Objetivo
 
 Surgiu de uma dor bem concreta: trabalho com ciência de dados, mexo com planilha o tempo todo, não tenho licença de Excel, e cansei de ter que subir arquivo no Google Drive/Planilhas só pra dar uma olhada rápida ou mudar uma célula. Quem trabalha com dados sem licença corporativa de Office provavelmente passa pela mesma coisa — então a ideia é resolver isso pra quem tá nessa situação também, não só pra mim.
@@ -22,7 +24,7 @@ A meta é ocupar o espaço que LibreOffice Calc e OnlyOffice ocupam hoje, só qu
 - Fórmulas comuns (soma, média, se, procv etc.)
 - Formatação básica de células
 - Funciona offline (PWA, service worker)
-- Sem conta/login obrigatório; dados ficam no dispositivo (IndexedDB/localStorage), com sync em nuvem opcional no futuro
+- Sem conta/login obrigatório; nada sai do dispositivo — abrir/salvar é sempre um arquivo local, sem passar por servidor
 
 Fora do escopo por enquanto: macros/VBA, tabelas dinâmicas, gráficos avançados, colaboração em tempo real.
 
@@ -44,6 +46,12 @@ npm run preview   # serve o build de produção
 
 Nota: o pacote `xlsx` do registro público do npm está desatualizado (0.18.5); a SheetJS recomenda instalar a versão atual direto do CDN deles (`npm install https://cdn.sheetjs.com/xlsx-latest/xlsx-latest.tgz`). Ficou pendente porque o ambiente onde isso foi montado bloqueia esse domínio.
 
+## Deploy
+
+`.github/workflows/deploy-pages.yml` publica automaticamente no GitHub Pages a cada push na `main` — zero conta nova pra criar, usa só o que o repositório já tem. Passo manual único (uma vez só): em Settings > Pages do repositório, mudar "Source" pra "GitHub Actions". Depois disso o site fica em `https://reinaldo-rneto.github.io/planilha-livre/`.
+
+Se preferir Vercel ou Netlify no lugar (dá cabeçalhos de segurança customizados tipo CSP, o que o GitHub Pages não permite configurar): é só conectar o repositório lá, ambos detectam Vite automaticamente — nesse caso não precisa do `--base`, porque os dois servem na raiz do domínio.
+
 ## Validado até agora
 
 - **Performance:** csv de 50.000 linhas × 12 colunas abre em ~1,85s e exporta pra xlsx em ~2,8s (arquivo final ~8,5MB); dados conferidos byte a byte no round-trip.
@@ -62,7 +70,23 @@ Tudo isso testado em Chromium via Playwright, e o essencial (abrir arquivo, edit
 
 - **SOMA/MÉDIA/SE/PROCV só funcionam dentro do PlanilhaLivre** — o arquivo `.xlsx` exportado guarda a fórmula com esse nome em português mesmo (confirmado: `A4.f = "SOMA(A1:A3)"` no arquivo salvo), porque agora "SOMA" é uma função de verdade pro nosso app, não uma tradução visual como no Excel de verdade. Isso é diferente de `SUM`/`AVERAGE`/`IF`/`VLOOKUP`, que são nomes padrão do formato xlsx e funcionam em qualquer programa. Se você abrir esse arquivo no Excel ou LibreOffice de verdade, essas quatro fórmulas em português vão dar erro (`#NAME?`) — abrir de volta no PlanilhaLivre funciona sempre. Fórmulas digitadas em inglês, ou fórmulas de um arquivo importado (mesmo que o Excel mostre em português na tela), não têm esse problema porque já são o nome padrão. Não implementei o PROCV inteiro — só a correspondência exata (4º argumento `FALSO`) e a aproximada assumindo a 1ª coluna já ordenada (o mesmo que o Excel faz com o 4º argumento de fora), sem replicar toda a semântica de erro do VLOOKUP oficial.
 - **Código que o navegador baixa pra rodar o app continua grande:** ~6,1MB (1,71MB gzip) mesmo depois do ajuste acima. Analisei o bundle módulo por módulo (`rollup-plugin-visualizer`): o que pesa de verdade é `@univerjs/sheets-ui`, `engine-formula`, `sheets-formula`, `docs-ui` e `sheets` — ou seja, a própria edição de célula, o motor de fórmula e o editor de texto rico — não tem gordura óbvia pra cortar sem risco. Reduzir isso de verdade exigiria trocar o preset completo por pacotes de nível mais baixo do Univer e montar a integração na mão (refactor maior, com risco real de quebrar funcionalidade já validada) — não fiz sem avaliar com calma.
+- **Sem autosalvamento entre sessões** — hoje o trabalho só é salvo quando você clica em "Salvar .xlsx"/"Salvar .csv"; atualizar ou fechar a aba sem salvar perde o que não foi salvo. O plano original (README antigo) citava persistência em IndexedDB/localStorage, mas isso nunca foi implementado — corrigi a descrição do escopo pra não prometer algo que não existe. Dá pra resolver guardando um snapshot automático em IndexedDB, mas é uma feature nova, não fiz sem você pedir.
 
 ## Status
 
 Esqueleto funcional: abrir/editar/salvar xlsx e csv de ponta a ponta, com performance, mobile (validado em celular real), offline, instalação (com ícone próprio) e persistência de fórmulas validados por teste automatizado, e só 1 vulnerabilidade "high" restante no `npm audit` (era 95 — as outras 94 eram o `nanoid` desatualizado usado por dependências internas do Univer que nem chegamos a importar; corrigido travando a versão via `overrides` no `package.json`). A que restou é o pacote `xlsx` desatualizado do registro do npm, que resolve trocando pelo tarball do CDN da SheetJS. Fórmulas digitadas funcionam tanto em inglês quanto em português (SOMA, MÉDIA, SE, PROCV) — essas quatro em português só dentro do PlanilhaLivre, ver pendência acima sobre abrir o arquivo exportado em Excel/LibreOffice de verdade. O que ainda fica de decisão em aberto: vale a pena o refactor maior pra reduzir mais o bundle de código.
+
+## Segurança
+
+Revisão feita antes de publicar (checklist padrão de segredos/auth/banco/infra). A maior parte não se aplica porque o app não tem servidor, banco, login nem chamada de rede — tudo roda no navegador da própria pessoa, com o arquivo dela. O que foi conferido de fato:
+
+- Sem segredo/token/chave commitado no repositório ou no histórico do git.
+- Sem `innerHTML`/`dangerouslySetInnerHTML` com dado do usuário (nome de arquivo e afins usam `textContent`, que escapa automaticamente) — sem vetor de XSS.
+- Sem `fetch`/requisição de rede — o app não manda nada pra fora do dispositivo.
+- Dependências: `npm audit` só com 1 pendência conhecida e documentada (ver "Status").
+- Risco real, não hipotético: a vulnerabilidade do `xlsx` desatualizado (ReDoS/prototype pollution) importa mais aqui do que em uso normal, porque o app processa arquivo de terceiro sem sandbox — um `.xlsx` malicioso poderia travar a aba. É o mesmo item pendente de sempre; resolver = trocar o pacote pela versão atual da SheetJS.
+- Headers de segurança (CSP, X-Frame-Options): não configurados ainda. GitHub Pages não permite customizar headers; se hospedar em Vercel/Netlify, dá pra adicionar depois — baixo risco pra esse app (sem XSS conhecido, sem dado sensível de terceiro), mas é a próxima camada de defesa se quiser reforçar.
+
+## Licença
+
+Apache 2.0 (mesma licença do Univer, a peça central da stack) — ver [`LICENSE`](./LICENSE).
