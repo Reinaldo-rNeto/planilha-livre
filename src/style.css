@@ -98,6 +98,20 @@ body {
   min-height: 0;
 }
 
+/* Bug de verdade dentro do próprio Univer (não é nada nosso): alguns itens de
+   menu — a lista de fontes é o caso confirmado, dá pra ter outros iguais —
+   têm a classe "dark:!univer-text-white", que força o texto pra branco no
+   modo escuro do sistema, mas o fundo do menu continua branco (falta a classe
+   de fundo escuro correspondente nesse componente do próprio Univer). Sem
+   isso, o menu abre com texto branco em cima de fundo branco — invisível.
+   Anula só essa cor especificamente no modo escuro, sem tocar em nada do modo
+   claro. */
+@media (prefers-color-scheme: dark) {
+  [class*='dark:!univer-text-white'] {
+    color: #1c1c1e !important;
+  }
+}
+
 @media (max-width: 640px) {
   #toolbar .rotulo {
     display: none;
